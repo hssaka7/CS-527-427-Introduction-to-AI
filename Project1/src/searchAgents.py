@@ -568,9 +568,16 @@ def foodHeuristic(state, problem):
 
 
     "*** YOUR CODE HERE ***"
+
+    """
+    First of all tried returning the minimum manhatten distance to the available foo plus, 
+    the number of food remaining in the gird. It was both admissible and consistent, but was exploring a lot
+    og nodes. Hence, tried calculating the mazeDistance form current location to the available food locations 
+    and returned the maximum of it. 
+    """
     foodGridList = foodGrid.asList()
     (x0,y0) = position
-    sumRem = 0
+
 
     manDis = []
 
@@ -579,10 +586,10 @@ def foodHeuristic(state, problem):
     else:
 
         for (x,y) in foodGridList:
-            tempDist = abs(x-x0) + abs(y-y0)
-            #tempDist = mazeDistance(position)
+            #tempDist = abs(x-x0) + abs(y-y0)
+            tempDist = mazeDistance(position,(x,y),problem.startingGameState)
             manDis.append(tempDist)
-        return min(manDis) + len(foodGridList)-1
+        return max(manDis) #+ len(foodGridList)-1
 
 
 
