@@ -209,13 +209,8 @@ class MinimaxAgent(MultiAgentSearchAgent):
             tempVal = self.value(newState,newAgentId,depth)
 
 
-
-            maxVal = max(Val[0],tempVal[0])
-
-
-
-            if maxVal != Val[0]:
-                Val = (maxVal,action)
+            if tempVal[0]>Val[0]:
+                Val = (tempVal[0],action)
         return Val
 
 
@@ -229,10 +224,9 @@ class MinimaxAgent(MultiAgentSearchAgent):
         for action in nextActions:
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.value(newState,agentId+1,depth)
-            minVal = min(Val[0],tempVal[0])
 
-            if minVal != Val[0]:
-                Val = (minVal,action)
+            if tempVal[0]<Val[0]:
+                Val = (tempVal[0],action)
         return Val
 
 
@@ -288,11 +282,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.valueab(newState,agentId+1,depth,alpha,beta)
 
-
-            maxVal = max(Val[0],tempVal[0])
-
-            if maxVal != Val[0]:
-                Val = (maxVal,action)
+            if tempVal[0] > Val[0]:
+                Val = (tempVal[0],action)
             if Val[0]> beta:
                 return Val
             alpha = max(alpha,Val[0])
@@ -308,11 +299,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.valueab(newState,agentId+1,depth,alpha,beta)
 
-            minVal = min(Val[0],tempVal[0])
-
-
-            if minVal != Val[0]:
-                Val = (minVal,action)
+            if tempVal[0] < Val[0]:
+                Val = (tempVal[0],action)
             if Val[0] < alpha:
                 return Val
             beta = min(beta,Val[0])
@@ -351,7 +339,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         # check for the terminal condition
 
         if (treeDepth ==self.depth) or gameState.isLose() or gameState.isWin():
-            return  self.evaluationFunction(gameState)
+            return  (self.evaluationFunction(gameState),"Stop")
 
         # check if maxAgent (pacman)
         if agentId == 0:
@@ -372,15 +360,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.value(newState,agentId+1,depth)
 
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
-                #print "val Without action for max  ===  ", tempVal
-            maxVal = max(Val[0],tempVal)
-
-
-
-            if maxVal != Val[0]:
-                Val = (maxVal,action)
+            if tempVal[0] > Val[0]:
+                Val = (tempVal[0],action)
         return Val
 
 
@@ -393,10 +374,8 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         for action in nextActions:
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.value(newState,agentId+1,depth)
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
-               # print "val Without action for max  ===  ",tempVal
-            Val[0] += tempVal * probability
+
+            Val[0] += tempVal[0] * probability
             Val[1] = action
         return tuple(Val)
 
