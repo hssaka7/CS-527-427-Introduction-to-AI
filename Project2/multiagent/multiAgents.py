@@ -10,6 +10,7 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
+# edited by Aakash Basnet and Himanshu Chaudhary
 
 
 from util import manhattanDistance
@@ -54,67 +55,51 @@ class ReflexAgent(Agent):
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
-
         The evaluation function takes in the current and proposed successor
         GameStates (pacman.py) and returns a number, where higher numbers are better.
-
         The code below extracts some useful information from the state, like the
         remaining food (newFood) and Pacman position after moving (newPos).
         newScaredTimes holds the number of moves that each ghost will remain
         scared because of Pacman having eaten a power pellet.
-
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
         # Useful information you can extract from a GameState (pacman.py)
-        successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
-        newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-        finalReturnValue = 0.0
+        currentGameState = currentGameState.generatePacmanSuccessor(action)
+        pacmanPos= currentGameState.getPacmanPosition()
+        foodPos = currentGameState.getFood().asList()
+        ghostPos = currentGameState.getGhostPositions()
+        capsulePos = currentGameState.getCapsules()
 
-        #accounts the newScore
+        distancetoGhost = [manhattanDistance(pacmanPos,xy) for xy in ghostPos]
+        distancetoFood = [manhattanDistance(pacmanPos,xy) for xy in foodPos]
+        distanceToCapsule = [manhattanDistance(pacmanPos,xy) for xy in capsulePos]
 
-        finalReturnValue += successorGameState.getScore()
+        #if action is stop, we don't want pacman to stay idle
+        if action=='stop' : return -10000000
+        #avoid direction if ghost is in that tile
+        if min(distancetoGhost)==0: return -10000
+
+        #when capsule,food,ghost are not present, default values passed
+        if len(distanceToCapsule)==0 : distanceToCapsule+=[1]
+        if len(distancetoFood)==0 : distancetoFood+=[1]
+        if len(distancetoGhost)==0 : distancetoGhost+=[0]
+
+        #average of distances to food, capsule(with high priority) added with minimun distance to food and capsule
+        p1t = (-2 * (sum(distancetoFood)/len(distancetoFood))) + (- 20*(sum(distanceToCapsule)/len(distanceToCapsule)))
+        p1 = p1t - min(distancetoFood) - min(distancetoGhost)
+
+        p2 = 10*currentGameState.getScore()
+
+        #the number of food and capsule should inversely affect the total
+        p3 = (-4*len(distancetoGhost)) + (-40*(len (distanceToCapsule)+1))
+
+        #ghost should also negatively affect the total
+        p4 = -2*(100/min(distancetoGhost))
 
 
-        #accounts the distance to the ghosts.
-        (xi,yi) = successorGameState.getPacmanPosition()
-        ghostPositions = successorGameState.getGhostPositions()
-        distanceToGhosts = []
-        for (x,y) in ghostPositions:
-            tempDist = abs (x-xi) + abs (y-yi)
-            distanceToGhosts.append(tempDist)
-
-        foodPosition = successorGameState.getFood().asList()
-        distanceToFoods = []
-        for (xf,yf) in foodPosition:
-            tempDist = abs(xf-xi) + abs(yf-yi)
-            distanceToFoods.append(tempDist)
-
-        if len(distanceToFoods) != 0 :
-
-          if min(distanceToGhosts) ==0 :
-              finalReturnValue == float("Inf")
-          else:
-
-              finalReturnValue += min(distanceToGhosts)/min(distanceToFoods)
-        ## work of scared time:
-
-        if len (newScaredTimes) != 0:
-            finalReturnValue = finalReturnValue +min(newScaredTimes)
-
-        distanceToCapsule = []
-        for (xc,yc) in currentGameState.getCapsules():
-            manDistance = abs(xc-xi)+abs(yc-xi)
-            if manDistance == 0 :
-                finalReturnValue += 200
-            else:
-                finalReturnValue += 1/manDistance
-
-        "*** YOUR CODE HERE ***"
-        return finalReturnValue
+        total = p1+p2+p3+p4
+        return total
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -176,10 +161,19 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         minMaxValue = self.value(gameState,agentId,treeDepth)
 
-        print "minMaxValue ===   ",minMaxValue
+
         return minMaxValue[1]
 
     def value (self,gameState,agentId,treeDepth):
+        """
+        :param gameState: current state of game
+        :param agentId: agent id
+        :param treeDepth: current id
+        :return: the utilities
+
+        this function is a helper function that identifies either the agent is min ,max or terminal condition and calls the
+        respective function.
+        """
         # checking if all the agent has played or not.
         #if yes then resetting the agentId and increasing treeDepth
         if agentId == gameState.getNumAgents():
@@ -203,6 +197,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 
     def maxValue(self,state,depth,agentId):
+        """
+        This function is the maximium function for pacman
+        :param state
+        :param depth
+        :param agentId
+        :return: returns the maximum value from the leaves
+        """
         minVal = float("-inf")
         Val = (minVal,"actionType")
         nextActions = state.getLegalActions(agentId)
@@ -221,6 +222,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 
     def minValue (self,state,depth,agentId):
+        """
+        This function is the minimum function for the ghost
+        :param state:
+        :param depth:
+        :param agentId:
+        :return: the minimum value from the leaves
+        """
         maxVal = float("inf")
         Val = (maxVal,"actionType")
 
@@ -290,7 +298,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
             if tempVal[0] > Val[0]:
                 Val = (tempVal[0],action)
+            #comparing with global beta and updating global alpha
             if Val[0]> beta:
+                #prunged
                 return Val
             alpha = max(alpha,Val[0])
         return Val
@@ -307,7 +317,9 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
             if tempVal[0] < Val[0]:
                 Val = (tempVal[0],action)
+            #comparing with global alpha and updating global beta
             if Val[0] < alpha:
+                #prunged
                 return Val
             beta = min(beta,Val[0])
         return Val
@@ -372,9 +384,16 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 
     def expValue (self,state,depth,agentId):
+        """
+        :param state:
+        :param depth:
+        :param agentId:
+        :return: the expected vaue from the given leaved
+        """
         Val = [0,"actionType"]
 
         nextActions = state.getLegalActions(agentId)
+        #probability calculation for expected value
         probability = 1.0/len(nextActions)
 
         for action in nextActions:
@@ -391,6 +410,20 @@ def betterEvaluationFunction(currentGameState):
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
       DESCRIPTION:
+      There are four main priority points used to calculate the final value
+
+       1) the average distance to nearest food and capsule negatively affect the total score
+           it gathers information from all areas of the game
+
+       2) the game score
+            the game score is the ultimate priority and it's calculation uses many important values
+
+       3) the number of food and capsule
+            used mainly to prioritize the move that will finally eat food or capsule
+
+       4) distance to nearest ghost negatively affect total
+            the distance had direct negative effects to the overal chances of winning
+
       Stuff that's good- ghosts not so close that they can kill Pacman, food, power pellets, scared ghosts
       Stuff that's bad- dying
     """
@@ -400,34 +433,33 @@ def betterEvaluationFunction(currentGameState):
     foodPos = currentGameState.getFood().asList()
     ghostPos = currentGameState.getGhostPositions()
     capsulePos = currentGameState.getCapsules()
-    walls = currentGameState.getWalls()
-    newGhostStates = currentGameState.getGhostStates()
-    scaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-    extra = 0;
 
+    #calculating distances to ghost, food and capsule from pacman
     distancetoGhost = [manhattanDistance(pacmanPos,xy) for xy in ghostPos]
     distancetoFood = [manhattanDistance(pacmanPos,xy) for xy in foodPos]
     distanceToCapsule =  [manhattanDistance(pacmanPos,xy) for xy in capsulePos]
 
 
-
-
+    #setting default values when the lists are empty
     if len(distanceToCapsule)==0 : distanceToCapsule+=[1]
     if len(distancetoFood)==0 : distancetoFood+=[1]
     if len(distancetoGhost)==0 : distancetoGhost+=[0]
 
+    #if the ghots is present in next tile, it avoids it
     if min(distancetoGhost)==0: return -10000
 
-    p1 = (-2 * (sum(distancetoFood)/len(distancetoFood))) + (- 2*(sum(distanceToCapsule)/len(distanceToCapsule))) - min(distancetoFood) - min(distancetoGhost)
+    #average of distances to food, capsule(with high priority) added with minimun distance to food and capsule
+    p1t = (-2 * (sum(distancetoFood)/len(distancetoFood))) + (- 2*(sum(distanceToCapsule)/len(distanceToCapsule)))
+    p1 = p1t - min(distancetoFood) - min(distancetoGhost)
     p2 = 10*currentGameState.getScore()
+    #the number of food and capsule should inversely affect the total
     p3 = (-4*len(distancetoGhost)) + (-40*len (distanceToCapsule))
+    #ghost should also negatively affect the total
     p4 = -2*(10/min(distancetoGhost))
-
 
     total = p1+p2+p3+p4
 
-
-    return  total
+    return total
 
 
 # Abbreviation
