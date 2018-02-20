@@ -95,17 +95,23 @@ class ReflexAgent(Agent):
 
         if len(distanceToFoods) != 0 :
 
-          if min(distanceToGhosts) <=2 :
-              finalReturnValue == -999999
+          if min(distanceToGhosts) ==0 :
+              finalReturnValue == float("Inf")
           else:
 
               finalReturnValue += min(distanceToGhosts)/min(distanceToFoods)
         ## work of scared time:
 
         if len (newScaredTimes) != 0:
-            finalReturnValue = finalReturnValue +0.5*min(newScaredTimes)
+            finalReturnValue = finalReturnValue +min(newScaredTimes)
 
-
+        distanceToCapsule = []
+        for (xc,yc) in currentGameState.getCapsules():
+            manDistance = abs(xc-xi)+abs(yc-xi)
+            if manDistance == 0 :
+                finalReturnValue += 200
+            else:
+                finalReturnValue += 1/manDistance
 
         "*** YOUR CODE HERE ***"
         return finalReturnValue
@@ -380,41 +386,49 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         return tuple(Val)
 
 
-
-
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
-
-      DESCRIPTION: <write something here so we know what you did>
+      DESCRIPTION:
+      Stuff that's good- ghosts not so close that they can kill Pacman, food, power pellets, scared ghosts
+      Stuff that's bad- dying
     """
-    "*** YOUR CODE HERE ***"
+    "* YOUR CODE HERE *"
+
     pacmanPos= currentGameState.getPacmanPosition()
     foodPos = currentGameState.getFood().asList()
     ghostPos = currentGameState.getGhostPositions()
     capsulePos = currentGameState.getCapsules()
     walls = currentGameState.getWalls()
-
-
-
-
-
+    newGhostStates = currentGameState.getGhostStates()
+    scaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+    extra = 0;
 
     distancetoGhost = [manhattanDistance(pacmanPos,xy) for xy in ghostPos]
     distancetoFood = [manhattanDistance(pacmanPos,xy) for xy in foodPos]
     distanceToCapsule =  [manhattanDistance(pacmanPos,xy) for xy in capsulePos]
 
-    if min(distancetoGhost)==0: return -10000
+
+
+
     if len(distanceToCapsule)==0 : distanceToCapsule+=[1]
     if len(distancetoFood)==0 : distancetoFood+=[1]
-    countPoint = 2000/((len(foodPos)+1) + (2*len(capsulePos))+1)
-    foodPoint = 50/min(distancetoFood)
-    ghostPoint = min(distancetoGhost)*1.5
-    capsulePoint = 20/min(distanceToCapsule)
-    total = (foodPoint+ghostPoint+capsulePoint) + countPoint
+    if len(distancetoGhost)==0 : distancetoGhost+=[0]
+
+    if min(distancetoGhost)==0: return -10000
+
+    p1 = (-2 * (sum(distancetoFood)/len(distancetoFood))) + (- 2*(sum(distanceToCapsule)/len(distanceToCapsule))) - min(distancetoFood) - min(distancetoGhost)
+    p2 = 10*currentGameState.getScore()
+    p3 = (-4*len(distancetoGhost)) + (-40*len (distanceToCapsule))
+    p4 = -2*(10/min(distancetoGhost))
+
+
+    total = p1+p2+p3+p4
+
 
     return  total
+
 
 # Abbreviation
 better = betterEvaluationFunction
