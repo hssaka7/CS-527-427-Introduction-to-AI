@@ -424,8 +424,7 @@ def betterEvaluationFunction(currentGameState):
        4) distance to nearest ghost negatively affect total
             the distance had direct negative effects to the overal chances of winning
 
-      Stuff that's good- ghosts not so close that they can kill Pacman, food, power pellets, scared ghosts
-      Stuff that's bad- dying
+       
     """
     "* YOUR CODE HERE *"
 
