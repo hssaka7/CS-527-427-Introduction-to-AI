@@ -184,7 +184,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         # check for the terminal condition
 
         if (treeDepth ==self.depth) or gameState.isLose() or gameState.isWin():
-            return  self.evaluationFunction(gameState)
+            return  (self.evaluationFunction(gameState),"Stop")
 
         # check if maxAgent (pacman)
         if agentId == 0:
@@ -203,16 +203,14 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
 
 
-
         for action in nextActions:
             newState = state.generateSuccessor(agentId,action)
             newAgentId = agentId + 1
             tempVal = self.value(newState,newAgentId,depth)
 
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
 
-            maxVal = max(Val[0],tempVal)
+
+            maxVal = max(Val[0],tempVal[0])
 
 
 
@@ -227,12 +225,11 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
         nextActions = state.getLegalActions(agentId)
 
+
         for action in nextActions:
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.value(newState,agentId+1,depth)
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
-            minVal = min(Val[0],tempVal)
+            minVal = min(Val[0],tempVal[0])
 
             if minVal != Val[0]:
                 Val = (minVal,action)
@@ -270,7 +267,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         # check for the terminal condition
 
         if (treeDepth ==self.depth) or gameState.isLose() or gameState.isWin():
-            return  self.evaluationFunction(gameState)
+            return  (self.evaluationFunction(gameState),"Stop")
 
         # check if maxAgent (pacman)
         if agentId == 0:
@@ -291,10 +288,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.valueab(newState,agentId+1,depth,alpha,beta)
 
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
-                #print "val Without action for max  ===  ", tempVal
-            maxVal = max(Val[0],tempVal)
+
+            maxVal = max(Val[0],tempVal[0])
 
             if maxVal != Val[0]:
                 Val = (maxVal,action)
@@ -312,10 +307,8 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         for action in nextActions:
             newState = state.generateSuccessor(agentId,action)
             tempVal = self.valueab(newState,agentId+1,depth,alpha,beta)
-            if type(tempVal) is tuple:
-                tempVal = tempVal[0]
-               # print "val Without action for max  ===  ",tempVal
-            minVal = min(Val[0],tempVal)
+
+            minVal = min(Val[0],tempVal[0])
 
 
             if minVal != Val[0]:
@@ -409,25 +402,20 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
 
 
 
+
 def betterEvaluationFunction(currentGameState):
     """
       Your extreme ghost-hunting, pellet-nabbing, food-gobbling, unstoppable
       evaluation function (question 5).
 
-      DESCRIPTION:
-      Stuff that's good- ghosts not so close that they can kill Pacman, food, power pellets, scared ghosts
-      Stuff that's bad- dying
+      DESCRIPTION: <write something here so we know what you did>
     """
-    "* YOUR CODE HERE *"
-
+    "*** YOUR CODE HERE ***"
     pacmanPos= currentGameState.getPacmanPosition()
     foodPos = currentGameState.getFood().asList()
     ghostPos = currentGameState.getGhostPositions()
     capsulePos = currentGameState.getCapsules()
     walls = currentGameState.getWalls()
-    newGhostStates = currentGameState.getGhostStates()
-    scaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
-    extra = 0;
 
 
 
@@ -438,17 +426,14 @@ def betterEvaluationFunction(currentGameState):
     distancetoFood = [manhattanDistance(pacmanPos,xy) for xy in foodPos]
     distanceToCapsule =  [manhattanDistance(pacmanPos,xy) for xy in capsulePos]
 
+    if min(distancetoGhost)==0: return -10000
     if len(distanceToCapsule)==0 : distanceToCapsule+=[1]
     if len(distancetoFood)==0 : distancetoFood+=[1]
-    if len(distancetoGhost)==0 : distancetoGhost+=[0]
-
-    if min(distancetoGhost)==0: return -10000
-
-    countPoint = 2000/((len(foodPos)+1) + (10*len(capsulePos))+1)
+    countPoint = 2000/((len(foodPos)+1) + (2*len(capsulePos))+1)
     foodPoint = 50/min(distancetoFood)
     ghostPoint = min(distancetoGhost)*1.5
     capsulePoint = 20/min(distanceToCapsule)
-    total = (foodPoint+ghostPoint+capsulePoint) + countPoint + extra
+    total = (foodPoint+ghostPoint+capsulePoint) + countPoint
 
     return  total
 
