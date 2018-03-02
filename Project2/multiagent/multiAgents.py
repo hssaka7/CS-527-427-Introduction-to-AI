@@ -10,6 +10,9 @@
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
+
+# 02/19/2018
+#CS 427
 # edited by Aakash Basnet and Himanshu Chaudhary
 
 
@@ -55,12 +58,15 @@ class ReflexAgent(Agent):
     def evaluationFunction(self, currentGameState, action):
         """
         Design a better evaluation function here.
+
         The evaluation function takes in the current and proposed successor
         GameStates (pacman.py) and returns a number, where higher numbers are better.
+
         The code below extracts some useful information from the state, like the
         remaining food (newFood) and Pacman position after moving (newPos).
         newScaredTimes holds the number of moves that each ghost will remain
         scared because of Pacman having eaten a power pellet.
+
         Print out these variables to see what you're getting, then combine them
         to create a masterful evaluation function.
         """
@@ -424,7 +430,7 @@ def betterEvaluationFunction(currentGameState):
        4) distance to nearest ghost negatively affect total
             the distance had direct negative effects to the overal chances of winning
 
-       
+
     """
     "* YOUR CODE HERE *"
 
